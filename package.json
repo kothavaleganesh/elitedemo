@@ -1,0 +1,21 @@
+{
+  "name": "elite",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.0",
+    "fs": "0.0.1-security",
+    "lodash": "^4.17.11",
+    "node-excel-export": "^1.4.4",
+    "node-xlsx": "^0.15.0",
+    "read-excel-file": "^3.0.1",
+    "xls-to-json": "^0.5.2"
+  },
+  "homepage": "/"
+}
