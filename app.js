@@ -2,6 +2,7 @@ const excel = require('node-excel-export');
 var fs = require('fs');
 var xlsx = require('node-xlsx').default;
 var express = require("express");
+var json2xls = require("json2xls");
 var app = express();
 var _ = require('lodash');
 app.use(express.static("myApp")); // myApp will be the same folder name.
@@ -10,46 +11,110 @@ app.get("/", function (req, res, next) {
 });
 app.listen(8080, "0.0.0.0");
 console.log("MyProject Server is Listening on port 8080");
-fs.readFile("./xyz.xlsx", function (err, excel) {
-    if (err) {
-        // res.callback(err, null);
-    } else {
-        var jsonExcel = xlsx.parse(excel);
-        var retVal = [];
-        var firstRow = _.slice(jsonExcel[0].data, 0, 1)[0];
-        var excelDataToExport = _.slice(jsonExcel[0].data, 1);
-        var dataObj = [];
-        _.each(excelDataToExport, function (val, key) {
-            dataObj.push({});
-            _.each(val, function (value, key2) {
-                dataObj[key][firstRow[key2]] = value;
-            });
-        });
-        console.log(dataObj)
-        return dataObj;
-        // fs.unlink(finalPath);
-    }
-});
+// fs.readFile("./xyz.xlsx", function (err, excel) {
+//     if (err) {
+//         // res.callback(err, null);
+//     } else {
+//         var jsonExcel = xlsx.parse(excel);
+//         var retVal = [];
+//         var firstRow = _.slice(jsonExcel[0].data, 0, 1)[0];
+//         var excelDataToExport = _.slice(jsonExcel[0].data, 1);
+//         var dataObj = [];
+//         _.each(excelDataToExport, function (val, key) {
+//             dataObj.push({});
+//             _.each(val, function (value, key2) {
+//                 dataObj[key][firstRow[key2]] = value;
+//             });
+//         });
+//         console.log(dataObj)
+//         return dataObj;
+//         // fs.unlink(finalPath);
+//     }
+// });
 
-node_xj = require("xls-to-json");
-node_xj({
-    input: "./xyz.xlsx", // input xls
-    output: "output.json", // output json
-    sheet: "Invoice", // specific sheetname
-    rowsToSkip: 5 // number of rows to skip at the top of the sheet; defaults to 0
-}, function (err, result) {
-    if (err) {
-        console.error(err);
-    } else {
-        // console.log(result);
-    }
-});
+// node_xj = require("xls-to-json");
+// node_xj({
+//     input: "./xyz.xlsx", // input xls
+//     output: "output.json", // output json
+//     sheet: "Invoice", // specific sheetname
+//     rowsToSkip: 5 // number of rows to skip at the top of the sheet; defaults to 0
+// }, function (err, result) {
+//     if (err) {
+//         console.error(err);
+//     } else {
+//         // console.log(result);
+//     }
+// });
 
 const readXlsxFile = require('read-excel-file/node');
 
 // File path.
 readXlsxFile('./xyz.xlsx').then((rows) => {
-    console.log(rows);
+    // console.log(rows);
+    var invoiceArray = [];
+    for (i = 22; i <= 29; i++) {
+        var invoiceData = {};
+        if (rows[i][0] !== null) {
+            invoiceData.invNo = rows[6][2];
+            invoiceData.date = rows[7][2];
+            invoiceData.company = rows[11][0];
+            invoiceData.model = rows[i][1];
+            invoiceData.quantity = rows[i][5];
+            invoiceData.rate = rows[i][7];
+            invoiceArray.push(invoiceData);
+        }
+    }
+
+    console.log(invoiceArray);
+    fs.readFile("./xyz1.xlsx", function (err, excel) {
+        if (err) {
+            // res.callback(err, null);
+        } else {
+            var jsonExcel = xlsx.parse(excel);
+            console.log(jsonExcel);
+            var firstRow = _.slice(jsonExcel[0].data, 0, 1)[0];
+            var excelDataToExport = _.slice(jsonExcel[0].data, 1);
+            var dataObj = [];
+            _.each(excelDataToExport, function (val, key) {
+                dataObj.push({});
+                _.each(val, function (value, key2) {
+                    dataObj[key][firstRow[key2]] = value;
+                });
+            });
+            console.log(dataObj)
+            found = _.concat(dataObj, invoiceArray);
+            var excelData = [];
+            _.each(found, function (singleData) {
+                var singleExcel = {};
+                _.each(singleData, function (n, key) {
+                    singleExcel[key] = n;
+                });
+                excelData.push(singleExcel);
+            });
+            var xls = json2xls(excelData);
+            var folder = "./";
+            var path = "xyz1.xlsx";
+            var finalPath = folder + path;
+            fs.writeFile(finalPath, xls, "binary", function (err) {
+                if (err) {
+                    // res.callback(err, null);
+                } else {
+                    // fs.readFile(finalPath, function (err, excel) {
+                    //     if (err) {
+                    //         res.callback(err, null);
+                    //     } else {
+                    //         res.set("Content-Type", "application/octet-stream");
+                    //         res.set("Content-Disposition", "attachment;filename=" + path);
+                    //         res.send(excel);
+                    //         fs.unlink(finalPath);
+                    //     }
+                    // });
+                }
+            });
+            // fs.unlink(finalPath);
+        }
+    });
+
     // `rows` is an array of rows
     // each row being an array of cells.
 })
